@@ -31,7 +31,7 @@ Follow the snippet the installer prints, e.g. for bash:
 ```bash
 echo 'export PATH="$HOME/.omnistack/bin:$PATH"' >> ~/.bashrc
 source ~/.bashrc
-lap --version          # → lap, version 0.22.0
+lap --version          # → lap, version 0.23.0
 ```
 
 For zsh use `~/.zshrc`; for fish use `fish_add_path "$HOME/.omnistack/bin"`.
@@ -83,7 +83,7 @@ flight). Pass `--force` to override.
 ## Pin a specific version
 
 ```bash
-LAP_VERSION=v0.22.0 curl -fsSL https://raw.githubusercontent.com/omni-stack-gen/lap-releases/main/install.sh | bash
+LAP_VERSION=v0.23.0 curl -fsSL https://raw.githubusercontent.com/omni-stack-gen/lap-releases/main/install.sh | bash
 ```
 
 Useful for downgrade or for matching a specific SaaS protocol version.
@@ -124,7 +124,7 @@ Each tag `vX.Y.Z` ships:
 ## Verify a release manually (without install.sh)
 
 ```bash
-TAG=v0.22.0
+TAG=v0.23.0
 ARCH=$(uname -m)   # x86_64 / aarch64
 BASE="https://github.com/omni-stack-gen/lap-releases/releases/download/$TAG"
 
@@ -134,6 +134,47 @@ sha256sum -c SHA256SUMS --ignore-missing       # → OK
 chmod +x "lap-$TAG-linux-$ARCH"
 ./lap-$TAG-linux-$ARCH --version
 ```
+
+---
+
+## What's new
+
+### v0.23.0 — x86 SoC `run` step spawn-detach
+
+The x86-dev preview path no longer waits for you to close the slint window
+before reporting the job done. After spawn, `lap` watches the binary for a
+short smoke window (default 5s, override with `LAP_X86_SMOKE_SEC`); if the
+binary stays alive without crashing, the run step returns immediately and
+the SaaS web UI unlocks for the next prompt. The slint window keeps running
+on your desktop until you replace it (submit a new prompt) or close it
+manually.
+
+**Behavior changes you may notice:**
+
+- A new prompt SIGTERMs the previous preview window automatically (single
+  instance, matching how a real device with one screen behaves). Previously
+  multiple windows could pile up.
+- LAP records the live preview at `~/.omnistack/x86_preview.pid`; restarting
+  `lap run` cleans up an orphan preview from the previous session.
+- Binary stdout/stderr go to `~/.omnistack/jobs/<job_id>/preview.{stdout,stderr}.log`
+  rather than streaming through the SaaS footprint. Tail those files if you
+  need to debug a binary that crashes after the smoke window.
+
+**Removed:**
+
+- `LAP_RUN_LIFETIME_SEC` is silently ignored — the v0.22.0 4h safety-net no
+  longer applies (LAP no longer awaits child exit). To bound the smoke
+  window, set `LAP_X86_SMOKE_SEC`.
+
+**Known limitations:**
+
+- A binary that crashes more than 5s after spawn is misjudged as healthy;
+  raise `LAP_X86_SMOKE_SEC` for slow-starting GPU contexts.
+- `systemctl stop lap` / `docker stop` kills the entire cgroup including the
+  preview. The supported deploy form for full preview detach is direct
+  `lap run` (the form `install.sh` produces).
+
+NX5 and F1 SoC paths are unchanged.
 
 ---
 

@@ -3,10 +3,10 @@
 # under ~/.omnistack/bin/. Linux-only (x86_64 / aarch64).
 #
 # Usage:
-#   curl -fsSL https://raw.githubusercontent.com/omni-stack-gen/local_agent_proxy/main/install.sh | bash
+#   curl -fsSL https://raw.githubusercontent.com/omni-stack-gen/lap-releases/main/install.sh | bash
 #
 # Env overrides:
-#   LAP_VERSION=v0.21.0          pin a specific tag (default: latest)
+#   LAP_VERSION=v0.23.0          pin a specific tag (default: latest)
 #   LAP_INSTALL_DIR=/path        custom install dir (default: ~/.omnistack/bin)
 #   LAP_ALLOW_SYSTEM_DIR=1       allow LAP_INSTALL_DIR outside $HOME (else refuse)
 #
